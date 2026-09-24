@@ -1,3 +1,73 @@
+# PJSIP IM 课程项目
+
+基于 PJPROJECT 学习 SIP 的即时通讯项目。目前使用 Python + PJSUA2 实现本机 UDP 文字消息收发；后续计划接入 Electron 桌面界面，并扩展登录、联系人、历史消息、语音和跨平台通信。
+
+## 当前状态
+
+- 已验证：macOS Apple Silicon、uv 虚拟环境、PJSUA2 Python 绑定构建。
+- 已验证：两个本机 Python 进程互发中文 SIP MESSAGE、收到 `200 OK`、正常退出。
+- 尚未实现：Electron 界面、服务器注册登录、联系人和消息持久化、语音/视频通话。
+- 尚未验证：Windows 客户端、局域网双机和公网互通。
+
+当前示例绑定 `127.0.0.1`，不需要 SIP 服务器；本地账号只是身份，不涉及密码鉴权。
+
+## 文档入口
+
+- [uv 环境创建、绑定构建与常见问题](python-bindings/README.md)
+- [文字消息示例使用教程](sip-demo/README.md)
+
+## 第一次运行
+
+先按照[构建教程](python-bindings/README.md)安装工具、创建 `.venv-pjsua2` 并编译绑定。
+以下命令均在项目根目录执行，两个终端分别激活虚拟环境。
+
+终端 B，先启动接收者：
+
+```sh
+source .venv-pjsua2/bin/activate
+python sip-demo/endpoint-demo.py --port 5070 --username bob
+```
+
+终端 A，发送一条消息：
+
+```sh
+source .venv-pjsua2/bin/activate
+python sip-demo/endpoint-demo.py --port 5060 --username alice \
+  --to "sip:bob@127.0.0.1:5070" --text "你好 Bob"
+```
+
+B 应显示消息正文，A 应显示 `发送结果：200 OK`。`200 OK` 表示对端接受消息，不代表已读。
+每次启动最多发送一条消息，随后继续接收；按 `Ctrl+C` 退出。
+
+## 项目结构
+
+| 路径 | 说明 |
+| --- | --- |
+| `sip-demo/endpoint-demo.py` | 当前消息收发入口 |
+| `sip-demo/message-demo.py` | 预留空文件，目前不使用 |
+| `python-bindings/` | SWIG/CMake 构建入口、验证脚本与教程 |
+| `.venv-pjsua2/` | uv 创建的 Python 虚拟环境，不提交 |
+| `python-bindings/build/` | 自动生成的桥接代码和编译产物，不提交 |
+| `pjlib/`、`pjmedia/`、`pjsip/`、`pjnath/` | 上游通信库源码 |
+| `build/` | 含上游构建脚本，也包含被忽略的本机 CMake 产物；不要整体删除 |
+
+`.venv-pjsua2` 是普通 Python 虚拟环境，其中安装了绑定；PJSIP 本身是 C/C++ 库。
+自动生成的 `pjsua2.py` 和原生模块不手工修改。提交源码、构建脚本和文档即可。
+
+## 后续开发顺序
+
+1. 增加交互式消息输入与 Electron 进程通信。
+2. 实现 Windows 绑定与局域网双机 MESSAGE。
+3. 接入 SIP 服务器，学习 REGISTER、鉴权和消息路由。
+4. 增加联系人、SQLite 历史消息和一对一语音。
+5. 验证公网 NAT 穿透，最后扩展视频。
+
+## 上游项目与许可
+
+本仓库基于 [pjsip/pjproject](https://github.com/pjsip/pjproject)。保留其源码、许可与下方文档信息；项目依赖的许可见仓库 COPYING 文件及[上游许可说明](https://www.pjsip.org/licensing.htm)。下方徽章反映上游项目状态，不代表本课程项目的测试结果。
+
+---
+
 
 [![CI Linux](https://github.com/pjsip/pjproject/actions/workflows/ci-linux.yml/badge.svg?branch=master)](https://github.com/pjsip/pjproject/actions/workflows/ci-linux.yml)
 [![CI Mac](https://github.com/pjsip/pjproject/actions/workflows/ci-mac.yml/badge.svg?branch=master)](https://github.com/pjsip/pjproject/actions/workflows/ci-mac.yml)
