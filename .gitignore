@@ -104,3 +104,30 @@ configure.out
 
 # Android AAR distribution build output
 /out-android/
+
+# Local CMake build outputs (keep upstream build scripts)
+/build/.cmake/
+/build/CMakeCache.txt
+/build/CMakeFiles/
+/build/CTestTestfile.cmake
+/build/DartConfiguration.tcl
+/build/Makefile
+/build/PjConfig.cmake
+/build/PjConfigVersion.cmake
+/build/PjDeps.cmake
+/build/Testing/
+/build/cmake_install.cmake
+/build/compile_commands.json
+/build/install_manifest.txt
+/build/libpjproject.pc
+/build/pjlib/
+/build/pjlib-util/
+/build/pjmedia/
+/build/pjnath/
+/build/pjsip/
+/build/pjsip-apps/
+/build/third_party/
+/pjsip-apps/src/swig/java/android/build/
+/python-bindings/build/
+/.venv/
+/.venv-pjsua2/

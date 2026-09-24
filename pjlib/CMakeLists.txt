@@ -807,6 +807,11 @@ if(BUILD_TESTING)
 
   target_link_libraries(pjlib-test PRIVATE pjlib pjlib-ssl)
 
+  # Resolve test certificates independently of the test working directory.
+  target_compile_definitions(pjlib-test PRIVATE
+    CERT_DIR="${CMAKE_CURRENT_SOURCE_DIR}/build/"
+  )
+
   add_test(NAME pjlib-test COMMAND pjlib-test)
 endif()
 

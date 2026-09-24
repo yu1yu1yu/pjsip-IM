@@ -7,7 +7,9 @@
 #include "test.h"
 #include <pjlib.h>
 
-#define CERT_DIR                    "../build/"
+#ifndef CERT_DIR
+#   define CERT_DIR                 "../build/"
+#endif
 #if (PJ_SSL_SOCK_IMP == PJ_SSL_SOCK_IMP_DARWIN) || \
     (PJ_SSL_SOCK_IMP == PJ_SSL_SOCK_IMP_APPLE)
 #   define CERT_CA_FILE             CERT_DIR "cacert.der"
