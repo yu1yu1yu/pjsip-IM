@@ -1,66 +1,51 @@
-# PJSIP IM 课程项目
+# PJSIP IM — Go 开发分支
 
-基于 PJPROJECT 学习 SIP 的即时通讯项目。目前使用 Python + PJSUA2 实现本机 UDP 文字消息收发；后续计划接入 Electron 桌面界面，并扩展登录、联系人、历史消息、语音和跨平台通信。
+本分支 `codex/go-development` 使用 Go 开发即时通讯应用，通过 cgo 绑定本仓库的 PJSUA C 接口。原来的 `master` 保留 Python + PJSUA2 开发版本。
 
-## 当前状态
+当前实现 Windows x64 上的本机 UDP 中文 SIP MESSAGE 收发、发送结果回调和端点生命周期管理。无需 Python 或 SIP 服务器。Go 应用逻辑位于 `go-bindings/`；PJSIP 协议栈仍由 C/C++ 源码编译。
 
-- 已验证：macOS Apple Silicon、uv 虚拟环境、PJSUA2 Python 绑定构建。
-- 已验证：两个本机 Python 进程互发中文 SIP MESSAGE、收到 `200 OK`、正常退出。
-- 尚未实现：Electron 界面、服务器注册登录、联系人和消息持久化、语音/视频通话。
-- 尚未验证：Windows 客户端、局域网双机和公网互通。
+## 构建与运行
 
-当前示例绑定 `127.0.0.1`，不需要 SIP 服务器；本地账号只是身份，不涉及密码鉴权。
+需要 Go 1.23+、CMake 3.28+、Ninja、MinGW-w64 GCC/G++ x64。仓库根目录执行：
 
-## 文档入口
-
-- [uv 环境创建、绑定构建与常见问题](python-bindings/README.md)
-- [文字消息示例使用教程](sip-demo/README.md)
-
-## 第一次运行
-
-先按照[构建教程](python-bindings/README.md)安装工具、创建 `.venv-pjsua2` 并编译绑定。
-以下命令均在项目根目录执行，两个终端分别激活虚拟环境。
-
-终端 B，先启动接收者：
-
-```sh
-source .venv-pjsua2/bin/activate
-python sip-demo/endpoint-demo.py --port 5070 --username bob
+```powershell
+.\go-bindings\build.ps1 -Test
 ```
 
-终端 A，发送一条消息：
+先在终端 B 启动接收者：
 
-```sh
-source .venv-pjsua2/bin/activate
-python sip-demo/endpoint-demo.py --port 5060 --username alice \
-  --to "sip:bob@127.0.0.1:5070" --text "你好 Bob"
+```powershell
+.\go-bindings\build\bin\sip-im.exe -port 5070 -username bob
 ```
 
-B 应显示消息正文，A 应显示 `发送结果：200 OK`。`200 OK` 表示对端接受消息，不代表已读。
-每次启动最多发送一条消息，随后继续接收；按 `Ctrl+C` 退出。
+终端 A 发送中文消息：
 
-## 项目结构
+```powershell
+.\go-bindings\build\bin\sip-im.exe -port 5060 -username alice -to 'sip:bob@127.0.0.1:5070' -text '你好 Bob'
+```
 
-| 路径 | 说明 |
+Bob 收到 `message` 事件，Alice 收到 `status` 事件和 `200 OK`；按 Ctrl+C 退出。消息接受回执不代表已读。
+
+完整说明见 [Go 环境、源码构建、API 与排错](go-bindings/README.md)。
+
+## 目录与分支
+
+| 路径或分支 | 用途 |
 | --- | --- |
-| `sip-demo/endpoint-demo.py` | 当前消息收发入口 |
-| `sip-demo/message-demo.py` | 预留空文件，目前不使用 |
-| `python-bindings/` | SWIG/CMake 构建入口、验证脚本与教程 |
-| `.venv-pjsua2/` | uv 创建的 Python 虚拟环境，不提交 |
-| `python-bindings/build/` | 自动生成的桥接代码和编译产物，不提交 |
-| `pjlib/`、`pjmedia/`、`pjsip/`、`pjnath/` | 上游通信库源码 |
-| `build/` | 含上游构建脚本，也包含被忽略的本机 CMake 产物；不要整体删除 |
+| `codex/go-development` | 当前 Go 开发分支 |
+| `master` | 原 Python 开发分支 |
+| `go.work` | Go 工作区入口 |
+| `go-bindings/pjsip/` | Go API、线程与生命周期管理、集成测试 |
+| `go-bindings/native/` | PJSUA C 桥接层 |
+| `go-bindings/cmd/sip-im/` | Go 消息收发入口 |
+| `go-bindings/build.ps1` | 从底层库到 Go 程序的一键构建与验证 |
+| `go-bindings/build/` | 原生编译产物与 exe，不提交 Git |
+| `python-bindings/`、`sip-demo/` | 继承的 Python 源码与文档，不参与 Go 构建 |
+| `pjlib/`、`pjmedia/`、`pjsip/`、`pjnath/` | 上游协议栈源码 |
 
-`.venv-pjsua2` 是普通 Python 虚拟环境，其中安装了绑定；PJSIP 本身是 C/C++ 库。
-自动生成的 `pjsua2.py` 和原生模块不手工修改。提交源码、构建脚本和文档即可。
+首版只监听 `127.0.0.1`，每进程一个端点。尚未实现服务器注册登录、持久化、Electron 界面及语音视频通话；其他平台与跨机通信尚未验证。当前构建关闭 TLS、SRTP 和音视频设备。
 
-## 后续开发顺序
-
-1. 增加交互式消息输入与 Electron 进程通信。
-2. 实现 Windows 绑定与局域网双机 MESSAGE。
-3. 接入 SIP 服务器，学习 REGISTER、鉴权和消息路由。
-4. 增加联系人、SQLite 历史消息和一对一语音。
-5. 验证公网 NAT 穿透，最后扩展视频。
+切换语言开发线前先提交或保存当前修改，再使用 `git switch master` 或 `git switch codex/go-development`。构建目录被忽略，不随分支切换，不能将 Go 和 Python 的原生编译产物混用。
 
 ## 上游项目与许可
 
